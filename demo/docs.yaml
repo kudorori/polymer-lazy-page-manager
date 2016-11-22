@@ -1,0 +1,41 @@
+
+info:
+  title: 123
+build: dev
+config: 
+  global:
+    #共用參數
+    status:
+      1: 測試
+  dev:
+    #測試主機用的config
+  publish:
+    #正式機使用的config
+elementsDir: apps
+defaultPath: /home
+sitemap:
+  - pattern: /home
+    suffix: /(.*)
+    ele: x-home
+    fragments:
+      - x-home-header
+      - x-home-footer
+    pages: 
+      - pattern: ""
+        ele: x-home-list
+      - pattern: /:id
+        ele: x-home-detail
+  - pattern: /news
+    ele: x-news
+    fragments:
+      - x-news-header
+      - x-news-footer
+    pages: 
+      - pattern: ""
+        ele: x-home-list
+      - pattern: /:id
+        ele: x-home-detail
+      - pattern: /:id/:id2
+        ele: x-home-detail
+      
+    

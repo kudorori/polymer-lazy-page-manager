@@ -1,0 +1,69 @@
+<script>
+	var __lazyPageDocs=null;
+	lazyPageBehavior={
+		properties:{
+			/*
+				存放網址參數 ex: /:foo/:boo => {foo:[val],boo:[val]}
+			*/
+			params:{
+				type:Object,
+				notify:true
+			},
+			/*
+				存放定義檔參數
+			*/
+			prop:{
+				type:Object,
+				notify:true
+			},
+			active:{
+				type:Boolean,
+				observer:"__activeChanged"
+			},
+			config:{
+				type:Function,
+				value:function(){
+					return function(){
+						var key = arguments[0];
+						var config = Object.assign(__lazyPageDocs.config.global,__lazyPageDocs.config[__lazyPageDocs.build]);
+				
+						if(typeof(config[key])!="undefined"){
+							return config[key];
+						}
+						return null;
+					}
+				}
+			}
+		},
+		__storage:function(){
+			
+		},
+		__activeChanged:function(b){
+			if(!this.isUndefined(b,this.activeReady)){
+				this.async(function(){
+					this.activeReady();
+				});
+			}
+		},
+		isUndefined:function(){
+			for(var key in arguments){
+				var item = arguments[key];
+				if(typeof(item)=="array"){
+					if(
+						item.indexOf(null)!=-1||
+						item.indexOf(undefined)!=-1||
+						item.indexOf(false)!=-1||
+						item.indexOf("")!=-1
+					){
+						return true;
+					}
+				}else{
+					if([null,undefined,false].indexOf(item)!=-1){
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+	}
+</script>

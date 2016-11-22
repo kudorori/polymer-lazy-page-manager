@@ -1,0 +1,222 @@
+<link rel="import" href="../polymer/polymer.html"/>
+<link rel="import" href="../yaml-parser/yaml-parser.html"/>
+<link rel="import" href="../iron-ajax/iron-ajax.html"/>
+<link rel="import" href="../iron-pages/iron-pages.html"/>
+<!-- <link rel="import" href="demo/apps/x-home.html"/> -->
+<link rel="import" href="../excess-router/excess-router.html"/>
+<link rel="import" href="../iron-localstorage/iron-localstorage.html"/>
+<link rel="import" href="lazy-page-behavior.html"/>
+<!--
+`lazy-page-manager`
+
+基於yaml的頁面管理套件
+
+@demo demo/index.html 
+
+
+-->
+
+<dom-module id="lazy-page-manager">
+  <template>
+  	<iron-ajax
+    auto
+    url="[[file]]"
+    handle-as="text"
+    last-response="{{yamlStr}}"
+    debounce-duration="300"></iron-ajax>
+    
+    <yaml-parser yaml="[[yamlStr]]" json="{{docs}}"></yaml-parser>
+    
+    <excess-router-config
+	  page-style="hash"
+	  hash-prefix="#!"
+	></excess-router-config>
+    <excess-route route="/" redirect-to="[[docs.defaultPath]]"></excess-route>
+    
+    
+    <lazy-pages pages="[[docs.sitemap]]" elements-dir="[[docs.elementsDir]]" start></lazy-pages>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'lazy-page-manager',
+	  bahaviors:[
+		  lazyPageBehavior
+	  ],
+      properties: {
+        mode: {
+          type: String,
+          value:"yaml",
+          enum:[
+	          "yaml",
+	          "json"
+          ]
+        },
+        file:{
+	        type: String,
+	        value:"docs.yaml"
+        },
+        docs:{
+	        type:Object,
+	        notify:true,
+	        observer:"__global_docs"
+        }
+      },
+	  __global_docs:function(docs){
+		  console.log(docs);
+		  __lazyPageDocs = docs;
+	  }
+    });
+  </script>
+</dom-module>
+
+
+<!--
+`lazy-pages`
+-->
+
+<dom-module id="lazy-pages">
+	<template>			
+		<template id="tmp" is="dom-repeat" items="[[pages]]">
+			<template is="dom-if" if="[[__isStart(__inited,start)]]" restamp>
+				<excess-route route$="[[baseUrl]][[item.pattern]][[item.suffix]]" on-excess-route-will-activate="__activeChanged"></excess-route>
+			</template>
+		</template>
+		<iron-pages id="page_container" 
+			selected$="[[__pageSelected]]" 
+			attr-for-selected="data-page"
+			selected-attribute="active">
+		</iron-pages>
+	</template>
+	<script>
+		Polymer({
+			is:"lazy-pages",
+			properties:{
+				elementsDir:{
+					type:String,
+					value:"/"
+				},
+				pages:{
+					type: Object,
+					observer: "__pagesChanged"
+				},
+				baseUrl:{
+					type: String,
+					value: ""
+				},
+				__pageSelected:{
+					type:String,
+					value:"",
+					observer:"__pageSelectedChanged"
+				},
+				__inited:{
+					type:Boolean,
+					value:false
+				},
+				start:{
+					type:Boolean,
+					value:false
+				}
+			},
+			__pageSelectedChanged:function(e){
+				console.log(e);
+			},
+			__pagesChanged:function(pages){
+				this.__inited=false;
+				new Promise(function(resolve,reject){
+					this.$.page_container.innerHTML = "";
+					pages.forEach(function(page){
+						var ele = document.createElement(page.ele);
+						var page_id = this.__getPageId(this.baseUrl+page.pattern);
+	// 					console.log(page_id);
+						ele.setAttribute("data-page",page_id);
+						if(page.fragments!=undefined){
+							Object.keys(page.fragments).forEach(function(ekey){
+								var f_ele = document.createElement(page.fragments[ekey]);
+								Polymer.dom(ele).appendChild(f_ele);
+							});
+						}
+						
+						Polymer.dom(this.$.page_container).appendChild(ele);
+					}.bind(this));
+					resolve();
+				}.bind(this)).then(function(){
+					this.__inited=true;
+				}.bind(this)).then(function(){
+					pages.forEach(function(page){
+						var page_id = this.__getPageId(this.baseUrl+page.pattern);
+						var ele = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");
+						if(page.pages!=undefined){
+							var __lazyPages = document.createElement("lazy-pages");
+							__lazyPages.set("elementsDir",this.elementsDir);
+							__lazyPages.set("baseUrl",[this.baseUrl,page.pattern].join(""));
+							__lazyPages.set("pages",page.pages);
+							Polymer.dom(ele).appendChild(__lazyPages);
+						}
+					}.bind(this));
+				}.bind(this)).catch(function(err){
+					console.log(err);
+				})
+				
+				
+			},
+			__getPattern:function(id){
+				if(id===""||id==undefined){
+					return "/";
+				}
+				console.log(id,this.pages);
+				var check = this.pages.filter(function(item){
+					return item.id===id;
+				});
+				if(check.length>0){
+					return check.shift().pattern;
+				}else{
+					return "/";
+				}
+			},
+			__getPageId:function(pattern){
+				var reg = new RegExp(/\/:(\w+)/g);
+				//url.replace(reg,"-$1").substr(1)
+				return pattern.replace(reg,"-$1").substr(1);
+			},
+			__activeChanged:function(e){
+				var model = this.$.tmp.modelForElement(e.target);
+				var page_id = this.__getPageId(this.baseUrl+model.item.pattern);
+				var module = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");
+				var router = e.target;
+				
+				new Promise(function(resolve,reject){
+					//判斷Polymer模組是不是已經初始化了
+					Polymer.isInstance(module)?resolve():reject();
+				}).catch(function(){
+					//去試著importHref進來
+					var importHref=this.elementsDir+"/"+module.tagName.toLowerCase()+".html";
+					return new Promise(function(resolve,reject){
+						Polymer.Base.importHref(importHref,function(){
+							resolve();
+						}.bind(this),function(){
+							reject();
+						});
+					})
+				}.bind(this)).then(function(){
+					//如果模組已經初始化或是將檔案import成功後
+					this.async(function(){
+						var __lazyPage = Polymer.dom(module).querySelector("lazy-pages");
+						var routeParams = router.routeParams;
+						module.set("params",routeParams||{});
+						if(__lazyPage!=null){
+							__lazyPage.set("start",true);
+						}
+					});
+				}.bind(this));
+				
+				this.set("__pageSelected",page_id);
+			},
+			__isStart:function(a,b){
+				return a&&b;
+			}
+		})
+	</script>
+</dom-module>
+

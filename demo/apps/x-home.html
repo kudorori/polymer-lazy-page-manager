@@ -1,0 +1,57 @@
+<dom-module id="x-home">
+	<template>
+	<iron-localstorage name="auth" value="{{auth}}"></iron-localstorage>
+	[[auth]]
+	<content select="lazy-pages"></content>
+	</template>
+	<script>
+		Polymer({
+			is:"x-home",
+			behaviors:[
+				lazyPageBehavior
+			],
+			properties:{
+				status:{
+					type:Object,
+					computed:"config('status')"
+				}
+			},
+			ready:function(){
+				console.log(123);
+				var a = this.isUndefined(false);
+				console.log(a);
+			},
+			activeReady:function(){
+				this.async(function(){
+					console.log("activeReady",this.status);
+				});
+				
+			}
+		})
+	</script>
+</dom-module>
+
+
+<dom-module id="x-home-list">
+	<template>
+	x-home-list
+	<content select="lazy-pages"></content>
+	</template>
+	<script>
+		Polymer({
+			is:"x-home-list"
+		})
+	</script>
+</dom-module>
+
+<dom-module id="x-home-detail">
+	<template>
+	[[params.id]]
+	<content select="lazy-pages"></content>
+	</template>
+	<script>
+		Polymer({
+			is:"x-home-detail"
+		})
+	</script>
+</dom-module>

@@ -1,0 +1,19 @@
+{
+  "name": "lazy-page-manager",
+  "main": "lazy-page-manager.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.4.0",
+    "app-route": "PolymerElements/app-route#^0.9.3",
+    "neon-animation": "PolymerElements/neon-animation#^1.2.4",
+    "yaml-parser": "^1.0.0",
+    "iron-pages": "PolymerElements/iron-pages#^1.0.8",
+    "excess-router": "^0.9.14",
+    "iron-localstorage": "PolymerElements/iron-localstorage#^1.0.6"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+  }
+}
