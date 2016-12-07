@@ -77,6 +77,17 @@
 -->
 
 <dom-module id="lazy-pages">
+	<style>
+		:host{
+			display:block;
+			height:100%;
+			width:100%;
+		}
+		:host iron-pages{
+			height:100%;
+			width:100%;
+		}
+	</style>
 	<template>			
 		<template id="tmp" is="dom-repeat" items="[[pages]]">
 			<template is="dom-if" if="[[__isStart(__inited,start)]]" restamp>
