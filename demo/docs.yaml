@@ -21,9 +21,9 @@ sitemap:
       - x-home-header
       - x-home-footer
     pages: 
-      - pattern: ""
+      - pattern: /list
         ele: x-home-list
-      - pattern: /:id
+      - pattern: /detail
         ele: x-home-detail
   - pattern: /news
     ele: x-news

@@ -1,7 +1,8 @@
 <dom-module id="x-home">
 	<template>
 	<iron-localstorage name="auth" value="{{auth}}"></iron-localstorage>
-	[[auth]]
+	<a href="#!/home/list">list</a>
+	<a href="#!/home/detail">detail</a>
 	<content select="lazy-pages"></content>
 	</template>
 	<script>
