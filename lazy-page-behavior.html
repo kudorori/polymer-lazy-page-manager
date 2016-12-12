@@ -1,6 +1,8 @@
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <script>
 	var __lazyPageDocs=null;
-	lazyPageBehavior={
+	
+	lazyPageBehavior=[Polymer.IronResizableBehavior,{
 		properties:{
 			/*
 				存放網址參數 ex: /:foo/:boo => {foo:[val],boo:[val]}
@@ -73,5 +75,5 @@
 			}
 			return false;
 		}
-	}
+	}]
 </script>
