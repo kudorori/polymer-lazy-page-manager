@@ -1,9 +1,12 @@
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <script>
 	var __lazyPageDocs=null;
-	
+	var __lazyPageModule={};
 	lazyPageBehavior=[Polymer.IronResizableBehavior,{
 		properties:{
+			dataPage:{
+				type:String
+			},
 			/*
 				存放網址參數 ex: /:foo/:boo => {foo:[val],boo:[val]}
 			*/
@@ -74,6 +77,58 @@
 				}
 			}
 			return false;
+		},
+		/*
+			依照目前路徑取得頁面doc檔
+			return [
+				{},
+				{}
+			]
+		*/
+		paths:function(){
+			var hash = location.hash;
+			
+			var get_doc = function(items,prefix){
+				var result = [];
+				for(var key in items){
+					var item = items[key];
+					var pattern = item.pattern+(item.suffix!=undefined?item.suffix:"");
+					var regex_str = this.__pattern2regex(pattern);
+					var isCheck = new RegExp(regex_str).test(hash);
+					if(isCheck){
+						result.push(item);
+						if(item.pages!=undefined){
+							result = result.concat(get_doc(item.pages,pattern));
+						}
+						return result;
+					}
+				}
+				return result;
+			}.bind(this);
+			
+			return get_doc(__lazyPageDocs.sitemap,"");
+		},
+		/*
+			取得目前正在執行doc&element
+			return
+				{
+					doc:{object},
+					ele:{element}
+				}
+		*/
+		activiey:function(){
+			var paths = this.paths();
+			var dataPage = paths.map(function(item){
+				return item.pattern;
+			}).join("");
+			return {
+				doc:paths.pop(),
+				ele:__lazyPageModule[dataPage]
+			};
+		},
+		__pattern2regex:function(pattern){
+			var regex = new RegExp(/(:[\w]*)/g);
+			return pattern.replace(regex,"([\\w]*)");
 		}
 	}]
 </script>

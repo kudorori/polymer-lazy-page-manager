@@ -5,7 +5,10 @@
 <!-- <link rel="import" href="demo/apps/x-home.html"/> -->
 <link rel="import" href="../excess-router/excess-router.html"/>
 <link rel="import" href="../iron-localstorage/iron-localstorage.html"/>
+<link rel="import" href="../iron-location/iron-location.html"/>
 <link rel="import" href="lazy-page-behavior.html"/>
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html"/>
+<link rel="import" href="../paper-button/paper-button.html"/>
 <!--
 `lazy-page-manager`
 
@@ -17,6 +20,16 @@
 -->
 
 <dom-module id="lazy-page-manager">
+	<style include="iron-flex">
+		#container{
+			width:100%;
+			height:100%;
+			
+		}
+		#page{
+			overflow-y:auto;
+		}
+	</style>
   <template>
   	<iron-ajax
     auto
@@ -34,7 +47,14 @@
     <excess-route route="/" redirect-to="[[docs.defaultPath]]"></excess-route>
     
     
-    <lazy-pages pages="[[docs.sitemap]]" elements-dir="[[docs.elementsDir]]" start></lazy-pages>
+    <div id="container" class=" layout vertical">
+	    <div id="page" class="flex">
+		    <lazy-pages __inited="{{inited}}" pages="[[docs.sitemap]]" elements-dir="[[docs.elementsDir]]" start></lazy-pages>
+	    </div>
+	    <template is="dom-if" if="{{inited}}">
+	    	<lazy-page-dev-tool></lazy-page-dev-tool>
+	    </template>
+    </div>
   </template>
 
   <script>
@@ -123,7 +143,8 @@
 				},
 				__inited:{
 					type:Boolean,
-					value:false
+					value:false,
+					notify:true
 				},
 				start:{
 					type:Boolean,
@@ -138,8 +159,11 @@
 				new Promise(function(resolve,reject){
 					this.$.page_container.innerHTML = "";
 					pages.forEach(function(page){
-						var ele = document.createElement(page.ele);
-						var page_id = this.__getPageId(this.baseUrl+page.pattern);
+						var page_id = this.baseUrl+page.pattern;
+						__lazyPageModule[page_id]=document.createElement(page.ele);
+						var ele = __lazyPageModule[page_id]
+// 						var page_id = this.__getPageId(this.baseUrl+page.pattern);
+ 						
 	// 					console.log(page_id);
 						ele.setAttribute("data-page",page_id);
 						if(page.fragments!=undefined){
@@ -156,7 +180,8 @@
 					this.__inited=true;
 				}.bind(this)).then(function(){
 					pages.forEach(function(page){
-						var page_id = this.__getPageId(this.baseUrl+page.pattern);
+// 						var page_id = this.__getPageId(this.baseUrl+page.pattern);
+						var page_id = this.baseUrl+page.pattern;
 						var ele = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");
 						if(page.pages!=undefined){
 							var __lazyPages = document.createElement("lazy-pages");
@@ -193,7 +218,8 @@
 			},
 			__activeChanged:function(e){
 				var model = this.$.tmp.modelForElement(e.target);
-				var page_id = this.__getPageId(this.baseUrl+model.item.pattern);
+// 				var page_id = this.__getPageId(this.baseUrl+model.item.pattern);
+				var page_id = this.baseUrl+model.item.pattern;				
 				var module = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");
 				var router = e.target;
 				
@@ -233,3 +259,74 @@
 	</script>
 </dom-module>
 
+<!--
+`lazy-page-dev-tool`
+用來協助開發所使用，主要用處是協助展示每一頁的案例。
+-->
+<dom-module id="lazy-page-dev-tool">
+	<style include="iron-flex">
+		:host{
+			display:block;
+			background:#FFECB3;
+			color:#795548;
+			padding:12px;
+		}
+		.head{
+			font-size:18px;
+			font-weight: bold;
+		}
+		paper-button{
+			background:#fff;
+		}
+	</style>
+	<template>
+		<iron-location hash="{{hash}}" url-space-regex="!(#\!)"></iron-location>
+		<div class="layout horizontal">
+			<div class="flex">
+				<div class="head">Remarks.</div>
+				<ul>
+					<template is="dom-repeat" items="[[remarks]]">
+						<li>[[item]]</li>
+					</template>
+				</ul>
+			</div>
+			<div class="flex">
+				<div class="head">Cases.</div>
+				<template is="dom-repeat" items="[[cases]]">
+					<paper-button on-click="callTest" raised>[[item.title]]</paper-button>
+				</template>
+			</div>
+		</div>
+		
+	</template>
+	<script>
+		Polymer({
+			is:"lazy-page-dev-tool",
+			behaviors:[
+				lazyPageBehavior
+			],
+			observers:[
+				"__getDoc(hash)"
+			],
+			__getDoc:function(hash){
+				this.async(function(){
+					var docs = this.activiey();
+					if(docs.doc.dev!=undefined){
+						this.set("remarks",docs.doc.dev.remark);
+						this.set("cases",docs.doc.dev.cases);
+						this.set("ele",docs.ele);
+					}else{
+						this.set("remarks",[]);
+						this.set("cases",[]);
+						this.set("ele",null);
+					}
+					
+				});
+			},
+			callTest:function(e){
+				var model = e.model;
+				this.ele[model.item.test](...model.item.properties);
+			}
+		})
+	</script>
+</dom-module>

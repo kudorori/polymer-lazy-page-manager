@@ -3,6 +3,7 @@
 	<iron-localstorage name="auth" value="{{auth}}"></iron-localstorage>
 	<a href="#!/home/list">list</a>
 	<a href="#!/home/detail">detail</a>
+	<button on-click="test">test</button>
 	<content select="lazy-pages"></content>
 	</template>
 	<script>
@@ -27,6 +28,9 @@
 					console.log("activeReady",this.status);
 				});
 				
+			},
+			test:function(){
+
 			}
 		})
 	</script>
@@ -35,12 +39,34 @@
 
 <dom-module id="x-home-list">
 	<template>
-	x-home-list
+	[[text]]
+	<div>
+		remark
+	</div>
+	<template is="dom-repeat" items="[[errors]]">
+		<div>
+			Error.[[index]] [[item]]
+		</div>
+	</template>
 	<content select="lazy-pages"></content>
 	</template>
 	<script>
 		Polymer({
-			is:"x-home-list"
+			is:"x-home-list",
+			behaviors:[
+				lazyPageBehavior
+			],
+			case1:function(e){
+				//模仿ajax response
+				var data = e.detail.response;
+				if(data.status==200){
+					this.set("text","註冊成功");
+					this.set("errors",[]);
+				}else{
+					this.set("text","註冊失敗");
+					this.set("errors",data.errors);				
+				}
+			}
 		})
 	</script>
 </dom-module>
