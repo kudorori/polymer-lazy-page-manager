@@ -90,7 +90,7 @@
 			
 			var get_doc = function(items,prefix){
 				var result = [];
-				for(var key in items){
+				for(var key in items.reverse()){
 					var item = items[key];
 					var pattern = item.pattern+(item.suffix!=undefined?item.suffix:"");
 					var regex_str = this.__pattern2regex(pattern);
