@@ -273,7 +273,7 @@
 				var module = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");
 				var router = e.target;				
 				var old_page_id = this.__pageSelected;
-				var old_module = Polymer.dom(this.root).querySelector(`[data-page='${old_page_id}']`);
+				var old_module = Polymer.dom(this.root).querySelector("[data-page='"+old_page_id+"']");
 				
 				
 				new Promise(function(resolve,reject){
