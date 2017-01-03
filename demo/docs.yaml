@@ -39,7 +39,6 @@ sitemap:
     pages: 
       - pattern: /list
         ele: x-home-list
-        dialog: true
       - pattern: /detail
         ele: x-home-detail
         dialog: true

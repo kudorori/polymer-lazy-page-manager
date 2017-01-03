@@ -85,6 +85,9 @@
 	        observer:"__global_docs"
         }
       },
+      ready:function(){
+	     
+      },
 	  __global_docs:function(docs){
 // 		  console.log(docs);
 		  __lazyPageDocs = docs;
@@ -245,18 +248,20 @@
 				//判斷是不是路由是不是已經通通失效，是的話就將他取消
 				var model = this.$.tmp.modelForElement(e.target);
 				var pattern = this.baseUrl+model.item.pattern;
-				this.async(function(){
-					if(!new RegExp(`^(!|)${pattern}`).test(this.hash)){
-						this.set("__pageSelected",null);
-					}	
-				},100);
+				if(!new RegExp(`^(!|)${pattern}`).test(this.hash)){
+					this.set("__pageSelected",null);
+				}
 			},
 			__activeChanged:function(e){
+				var that = this;
 				var model = this.$.tmp.modelForElement(e.target);
 // 				var page_id = this.__getPageId(this.baseUrl+model.item.pattern);
 				var page_id = this.baseUrl+model.item.pattern;				
 				var module = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");
-				var router = e.target;
+				var router = e.target;				
+				var old_page_id = this.__pageSelected;
+				var old_module = Polymer.dom(this.root).querySelector(`[data-page='${old_page_id}']`);
+				
 				
 				new Promise(function(resolve,reject){
 					//判斷Polymer模組是不是已經初始化了
@@ -272,18 +277,35 @@
 						});
 					})
 				}.bind(this)).then(function(){
-					//如果模組已經初始化或是將檔案import成功後
-					this.async(function(){
-						var __lazyPage = Polymer.dom(module).querySelector("lazy-pages");
-						var routeParams = router.routeParams;
-						module.set("params",routeParams||{});
-						if(__lazyPage!=null){
-							__lazyPage.set("start",true);
+					//如果模組已經初始化或是將檔案import成功後，將裡面的lazyPages啟動
+					return new Promise(function(resolve,reject){
+						that.async(function(){
+							var __lazyPage = Polymer.dom(module).querySelector("lazy-pages");
+							var routeParams = router.routeParams;
+							module.set("params",routeParams||{});
+							if(__lazyPage!=null){
+								__lazyPage.set("start",true);
+							}
+							resolve();
+						},50);
+					})
+				}.bind(this)).then(function(){
+					//確認之前的模組是否已經結束？
+					return new Promise(function(resolve,reject){
+						if(old_page_id!=page_id&&old_module!=null){
+							old_module.__confirm().then(function(){
+								resolve()
+							}).catch(function(){
+								history.forward();
+							});
+						}else{
+							resolve();
 						}
-						this.set("__pageSelected",page_id);
-					},50);
-					
-				}.bind(this)).catch(function(err){
+					});
+				}.bind(this)).then(function(){
+					//切換頁面選擇器
+					that.set("__pageSelected",page_id);
+				}).catch(function(err){
 					console.error(err);
 				});
 				

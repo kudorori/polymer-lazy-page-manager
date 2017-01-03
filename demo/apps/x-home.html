@@ -57,7 +57,7 @@
 		Polymer({
 			is:"x-home-list",
 			behaviors:[
-				lazyDialogBehavior
+				lazyPageBehavior
 			],
 			ready:function(){
 				
@@ -72,6 +72,14 @@
 					this.set("text","註冊失敗");
 					this.set("errors",data.errors);				
 				}
+			},
+			__confirm:function(){
+				return new Promise(function(resolve,reject){
+					if(confirm("test")){
+						resolve();
+					}
+					
+				});
 			}
 		})
 	</script>
@@ -95,6 +103,15 @@
 			],
 			ready:function(){
 // 				this.open();
+			},
+			__confirm:function(){
+				return new Promise(function(resolve,reject){
+					if(confirm("確認關閉？")){
+						resolve();
+					}else{
+						reject();
+					}
+				});
 			}
 		})
 	</script>
