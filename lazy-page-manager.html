@@ -9,6 +9,8 @@
 <link rel="import" href="lazy-page-behavior.html"/>
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html"/>
 <link rel="import" href="../paper-button/paper-button.html"/>
+<link rel="import" href="../paper-dialog/paper-dialog.html"/>
+<link rel="import" href="../iron-selector/iron-selector.html"/>
 <!--
 `lazy-page-manager`
 
@@ -111,7 +113,7 @@
 	<template>			
 		<template id="tmp" is="dom-repeat" items="[[pages]]">
 			<template is="dom-if" if="[[__isStart(__inited,start)]]" restamp>
-				<excess-route route$="[[baseUrl]][[item.pattern]][[__suffix(item.pages)]]" on-excess-route-will-activate="__activeChanged"></excess-route>
+				<excess-route route$="[[baseUrl]][[item.pattern]][[__suffix(item.pages)]]" on-excess-route-will-activate="__activeChanged" on-excess-route-will-deactivate="__deactiveChanged"></excess-route>
 			</template>
 		</template>
 		<iron-pages id="page_container" 
@@ -119,6 +121,14 @@
 			attr-for-selected="data-page"
 			selected-attribute="active">
 		</iron-pages>
+		<iron-selector 
+			id="dialog_container"
+			selected$="[[__pageSelected]]" 
+			attr-for-selected="data-page"
+			selected-attribute="opened"
+			>
+		</iron-selector>
+		
 	</template>
 	<script>
 		Polymer({
@@ -152,18 +162,22 @@
 				}
 			},
 			__suffix:function(pages){
+				if(pages==undefined){
+					return "";
+				}
 				if(pages.length>0){
 					return "(.*)";
 				};
 				return "";
 			},
 			__pageSelectedChanged:function(e){
-				console.log(e);
+// 				console.log(e);
 			},
 			__pagesChanged:function(pages){
 				this.__inited=false;
 				new Promise(function(resolve,reject){
 					this.$.page_container.innerHTML = "";
+					this.$.dialog_container.innerHTML="";
 					pages.forEach(function(page){
 						var page_id = this.baseUrl+page.pattern;
 						__lazyPageModule[page_id]=document.createElement(page.ele);
@@ -179,7 +193,12 @@
 							});
 						}
 						
-						Polymer.dom(this.$.page_container).appendChild(ele);
+						if(page.dialog){
+							Polymer.dom(this.$.dialog_container).appendChild(ele);
+						}else{
+							Polymer.dom(this.$.page_container).appendChild(ele);
+						}
+						
 					}.bind(this));
 					resolve();
 				}.bind(this)).then(function(){
@@ -222,6 +241,10 @@
 				//url.replace(reg,"-$1").substr(1)
 				return pattern.replace(reg,"-$1").substr(1);
 			},
+			__deactiveChanged:function(e){
+				var model = this.$.tmp.modelForElement(e.target);
+				this.set("__pageSelected",null);
+			},
 			__activeChanged:function(e){
 				var model = this.$.tmp.modelForElement(e.target);
 // 				var page_id = this.__getPageId(this.baseUrl+model.item.pattern);
@@ -251,12 +274,15 @@
 						if(__lazyPage!=null){
 							__lazyPage.set("start",true);
 						}
-					},100);
+						console.log(page_id);
+						this.set("__pageSelected",page_id);
+					},50);
+					
 				}.bind(this)).catch(function(err){
 					console.error(err);
 				});
 				
-				this.set("__pageSelected",page_id);
+				
 			},
 			__isStart:function(a,b){
 				return a&&b;

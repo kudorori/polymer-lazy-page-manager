@@ -1,4 +1,5 @@
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../iron-overlay-behavior/iron-overlay-behavior.html">
 <script>
 	var __lazyPageDocs=null;
 	var __lazyPageModule={};
@@ -129,6 +130,12 @@
 		__pattern2regex:function(pattern){
 			var regex = new RegExp(/(:[\w]*)/g);
 			return pattern.replace(regex,"([\\w]*)");
+		}
+	}]
+	
+	lazyDialogBehavior=[Polymer.IronOverlayBehavior,lazyPageBehavior,{
+		_lazyOpenedChanged:function(opened){
+			this.active=opened;
 		}
 	}]
 </script>
