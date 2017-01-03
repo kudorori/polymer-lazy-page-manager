@@ -86,7 +86,7 @@
         }
       },
 	  __global_docs:function(docs){
-		  console.log(docs);
+// 		  console.log(docs);
 		  __lazyPageDocs = docs;
 	  }
     });
@@ -110,7 +110,8 @@
 			width:100%;
 		}
 	</style>
-	<template>			
+	<template>
+		<iron-location hash="{{hash}}" url-space-regex="!(#\!)" ></iron-location>
 		<template id="tmp" is="dom-repeat" items="[[pages]]">
 			<template is="dom-if" if="[[__isStart(__inited,start)]]" restamp>
 				<excess-route route$="[[baseUrl]][[item.pattern]][[__suffix(item.pages)]]" on-excess-route-will-activate="__activeChanged" on-excess-route-will-deactivate="__deactiveChanged"></excess-route>
@@ -125,8 +126,7 @@
 			id="dialog_container"
 			selected$="[[__pageSelected]]" 
 			attr-for-selected="data-page"
-			selected-attribute="opened"
-			>
+			selected-attribute="opened">
 		</iron-selector>
 		
 	</template>
@@ -242,8 +242,14 @@
 				return pattern.replace(reg,"-$1").substr(1);
 			},
 			__deactiveChanged:function(e){
+				//判斷是不是路由是不是已經通通失效，是的話就將他取消
 				var model = this.$.tmp.modelForElement(e.target);
-				this.set("__pageSelected",null);
+				var pattern = this.baseUrl+model.item.pattern;
+				this.async(function(){
+					if(!new RegExp(`^(!|)${pattern}`).test(this.hash)){
+						this.set("__pageSelected",null);
+					}	
+				},100);
 			},
 			__activeChanged:function(e){
 				var model = this.$.tmp.modelForElement(e.target);
@@ -274,7 +280,6 @@
 						if(__lazyPage!=null){
 							__lazyPage.set("start",true);
 						}
-						console.log(page_id);
 						this.set("__pageSelected",page_id);
 					},50);
 					
