@@ -253,6 +253,9 @@
 				var model = this.$.tmp.modelForElement(e.target);
 				var pattern = this.baseUrl+model.item.pattern;
 				if(!new RegExp(`^(!|)${pattern}`).test(this.hash)){
+					if(model.item.dialog){
+						this.$.backdrop.close();
+					}
 					this.set("__pageSelected",null);
 				}
 			},
