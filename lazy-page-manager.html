@@ -111,7 +111,7 @@
 	<template>			
 		<template id="tmp" is="dom-repeat" items="[[pages]]">
 			<template is="dom-if" if="[[__isStart(__inited,start)]]" restamp>
-				<excess-route route$="[[baseUrl]][[item.pattern]][[item.suffix]]" on-excess-route-will-activate="__activeChanged"></excess-route>
+				<excess-route route$="[[baseUrl]][[item.pattern]][[__suffix(item.pages)]]" on-excess-route-will-activate="__activeChanged"></excess-route>
 			</template>
 		</template>
 		<iron-pages id="page_container" 
@@ -150,6 +150,12 @@
 					type:Boolean,
 					value:false
 				}
+			},
+			__suffix:function(pages){
+				if(pages.length>0){
+					return "(.*)";
+				};
+				return "";
 			},
 			__pageSelectedChanged:function(e){
 				console.log(e);
