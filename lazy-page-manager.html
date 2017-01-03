@@ -125,6 +125,10 @@
 			attr-for-selected="data-page"
 			selected-attribute="active">
 		</iron-pages>
+		
+		
+		
+		<iron-overlay-backdrop id="backdrop"></iron-overlay-backdrop>
 		<iron-selector 
 			id="dialog_container"
 			selected$="[[__pageSelected]]" 
@@ -303,8 +307,16 @@
 						}
 					});
 				}.bind(this)).then(function(){
-					//切換頁面選擇器
+					
+					if(model.item.dialog){
+						that.$.backdrop.open();
+					}else{
+						that.$.backdrop.close();
+					}
+					
 					that.set("__pageSelected",page_id);
+					//切換頁面選擇器
+					
 				}).catch(function(err){
 					console.error(err);
 				});
