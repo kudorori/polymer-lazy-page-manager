@@ -46,14 +46,15 @@
 	  page-style="hash"
 	  hash-prefix="#!"
 	></excess-router-config>
-    <excess-route route="/" redirect-to="[[docs.defaultPath]]"></excess-route>
-    
+	<template is="dom-if" if="[[inited]]">
+		<excess-route route="/(.*)" redirect-to="[[docs.defaultPath]]" activation-modifiers="x"></excess-route>
+	</template>
     
     <div id="container" class=" layout vertical">
 	    <div id="page" class="flex">
 		    <lazy-pages __inited="{{inited}}" pages="[[docs.sitemap]]" elements-dir="[[docs.elementsDir]]" start></lazy-pages>
 	    </div>
-	    <template is="dom-if" if="{{inited}}">
+	    <template is="dom-if" if="[[__isDev(inited,docs.build)]]">
 	    	<lazy-page-dev-tool></lazy-page-dev-tool>
 	    </template>
     </div>
@@ -90,6 +91,9 @@
 	  __global_docs:function(docs){
 // 		  console.log(docs);
 		  __lazyPageDocs = docs;
+	  },
+	  __isDev:function(init,build){
+		  return init&&build=="dev";
 	  }
     });
   </script>
