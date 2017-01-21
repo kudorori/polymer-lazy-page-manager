@@ -42,6 +42,9 @@ sitemap:
       - pattern: /detail
         ele: x-home-detail
         dialog: true
+      - pattern: /detail1
+        ele: x-home-detail
+        dialog: true
   - pattern: /news
     ele: x-news
     fragments:
