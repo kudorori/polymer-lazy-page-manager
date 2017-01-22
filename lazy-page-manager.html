@@ -58,14 +58,16 @@
 		<excess-route route="/(.*)" redirect-to="[[docs.defaultPath]]" activation-modifiers="x"></excess-route>
 	</template>
     
-    <div id="container" class=" layout vertical">
-	    <div id="page" class="flex">
-		    <lazy-pages __inited="{{inited}}" pages="[[docs.sitemap]]" elements-dir="[[docs.elementsDir]]" start></lazy-pages>
+    <template is="dom-if" if="[[start]]">
+    	<div id="container" class=" layout vertical">
+		    <div id="page" class="flex">
+			    <lazy-pages __inited="{{inited}}" pages="[[docs.sitemap]]" elements-dir="[[docs.elementsDir]]" start></lazy-pages>
+		    </div>
+		    <template is="dom-if" if="[[__isDev(inited,docs.build)]]">
+		    	<lazy-page-dev-tool></lazy-page-dev-tool>
+		    </template>
 	    </div>
-	    <template is="dom-if" if="[[__isDev(inited,docs.build)]]">
-	    	<lazy-page-dev-tool></lazy-page-dev-tool>
-	    </template>
-    </div>
+    </template>
   </template>
 
   <script>
@@ -91,6 +93,10 @@
 	        type:Object,
 	        notify:true,
 	        observer:"__global_docs"
+        },
+        start:{
+	        type:Boolean,
+	        value:true
         }
       },
       ready:function(){
