@@ -276,28 +276,30 @@
 				var model = this.$.tmp.modelForElement(e.target);
 				var pattern = this.baseUrl+model.item.pattern;
 				
-				if(!new RegExp("^(!|)"+pattern).test(this.hash)){
-					var old_page_id = this.__pageSelected;
-					var old_module = Polymer.dom(this.root).querySelector("[data-page='"+old_page_id+"']");
-					new Promise(function(resolve,reject){
-						if(old_module!=null){
-							old_module.__confirm().then(function(){
+				this.async(function(){
+					if(!new RegExp("^(!|)"+pattern).test(this.hash)){
+						var old_page_id = this.__pageSelected;
+						var old_module = Polymer.dom(this.root).querySelector("[data-page='"+old_page_id+"']");
+						
+						new Promise(function(resolve,reject){
+							
+							if(old_module!=null){
+								old_module.__confirm().then(function(){
+									resolve();
+								}).catch(function(){
+									history.forward();
+								});
+							}else{
 								resolve();
-							}).catch(function(){
-								history.forward();
-							});
-						}else{
-							resolve();
-						}
-					}).then(function(){
-						if(model.item.dialog){
-							this.$.backdrop.close();
-						}
-						this.set("__pageSelected",null);
-					}.bind(this));
-					
-					
-				}
+							}
+						}).then(function(){
+							if(model.item.dialog){
+								this.$.backdrop.close();
+							}
+							this.set("__pageSelected",null);
+						}.bind(this));
+					}
+				},100);
 			},
 			__activeChanged:function(e){
 				var that = this;
