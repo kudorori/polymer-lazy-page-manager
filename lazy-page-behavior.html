@@ -1,10 +1,30 @@
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../iron-overlay-behavior/iron-overlay-behavior.html">
+<link rel="import" href="../neon-animation/neon-animatable-behavior.html"/>
+<link rel="import" href="../neon-animation/neon-animation-behavior.html"/>
+<link rel="import" href="../neon-animation/neon-animations.html"/>
 <script>
 	var __lazyPageDocs=null;
 	var __lazyPageModule={};
-	lazyPageBehavior=[Polymer.IronResizableBehavior,{
+	lazyPageBehavior=[Polymer.NeonAnimatableBehavior,Polymer.IronResizableBehavior,{
 		properties:{
+			animationConfig: {
+		        type: Object,
+		        value: function() {
+		          	return {
+			            'entry': {
+			             	name: 'fade-in-animation',
+			             	node:this,
+			             	timing:500
+			            },
+			            'exit': {
+			              	name: 'fade-out-animation',
+			             	node:this,
+			             	timing:500
+			            }
+					};
+		        }
+		    },
 			dataPage:{
 				type:String
 			},
@@ -117,7 +137,7 @@
 					ele:{element}
 				}
 		*/
-		activiey:function(){
+		activity:function(){
 			var paths = this.paths();
 			var dataPage = paths.map(function(item){
 				return item.pattern;
@@ -149,6 +169,7 @@
 			"iron-overlay-canceled":"__clickBackup"
 		},
 		__clickBackup:function(e){
+			e.stopPropagation();
 			e.preventDefault();
 			history.back();
 		},

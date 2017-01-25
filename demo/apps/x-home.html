@@ -73,14 +73,36 @@
 					this.set("text","註冊失敗");
 					this.set("errors",data.errors);				
 				}
+			}
+		})
+	</script>
+</dom-module>
+
+<dom-module id="x-home-list-2">
+	<template>
+	testestgsetaafdfafsaf
+	
+	<content select="lazy-pages"></content>
+	</template>
+	<script>
+		Polymer({
+			is:"x-home-list-2",
+			behaviors:[
+				lazyPageBehavior
+			],
+			ready:function(){
+				
 			},
-			__confirm:function(){
-				return new Promise(function(resolve,reject){
-					if(confirm("test")){
-						resolve();
-					}
-					
-				});
+			case1:function(e){
+				//模仿ajax response
+				var data = e.detail.response;
+				if(data.status==200){
+					this.set("text","註冊成功");
+					this.set("errors",[]);
+				}else{
+					this.set("text","註冊失敗");
+					this.set("errors",data.errors);				
+				}
 			}
 		})
 	</script>
@@ -104,15 +126,6 @@
 			],
 			ready:function(){
 // 				this.open();
-			},
-			__confirm:function(){
-				return new Promise(function(resolve,reject){
-					if(confirm("確認關閉？")){
-						resolve();
-					}else{
-						reject();
-					}
-				});
 			}
 		})
 	</script>
