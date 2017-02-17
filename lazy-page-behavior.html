@@ -6,25 +6,8 @@
 <script>
 	var __lazyPageDocs=null;
 	var __lazyPageModule={};
-	lazyPageBehavior=[Polymer.NeonAnimatableBehavior,Polymer.IronResizableBehavior,{
+	lazyPageBehavior=[Polymer.IronResizableBehavior,{
 		properties:{
-			animationConfig: {
-		        type: Object,
-		        value: function() {
-		          	return {
-			            'entry': {
-			             	name: 'fade-in-animation',
-			             	node:this,
-			             	timing:500
-			            },
-			            'exit': {
-			              	name: 'fade-out-animation',
-			             	node:this,
-			             	timing:500
-			            }
-					};
-		        }
-		    },
 			dataPage:{
 				type:String
 			},
@@ -176,5 +159,37 @@
 		_lazyOpenedChanged:function(opened){
 			this.active=opened;
 		}
-	}]
+	}];
+	
+	lazyAnimationBehavior=[
+		Polymer.NeonAnimatableBehavior,
+		{
+			properties:{
+				animationConfig: {
+			        type: Object,
+			        value: function() {
+			          	return {
+				            'entry': {
+				             	name: 'fade-in-animation',
+				             	node:this,
+				             	timing:500
+				            },
+				            'exit': {
+				              	name: 'fade-out-animation',
+				             	node:this,
+				             	timing:500
+				            }
+						};
+			        }
+			    },
+			}
+		}
+	];
+	
+	lazyAnimationPageBehavior=[
+		lazyPageBehavior,lazyAnimationBehavior
+	];
+	lazyAnimationDialogBehavior=[
+		lazyDialogBehavior,lazyAnimationBehavior
+	];
 </script>
