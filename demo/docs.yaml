@@ -5,8 +5,7 @@ build: publish
 config: 
   global:
     #共用參數
-    status:
-      1: 測試
+    status: 123123123
   dev:
     #測試主機用的config
   publish:

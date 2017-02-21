@@ -7,6 +7,7 @@
 <link rel="import" href="../iron-localstorage/iron-localstorage.html"/>
 <link rel="import" href="../iron-location/iron-location.html"/>
 <link rel="import" href="lazy-page-behavior.html"/>
+<link rel="import" href="lazy-page-redux-behaviors.html"/>
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html"/>
 <link rel="import" href="../paper-button/paper-button.html"/>
 <link rel="import" href="../paper-dialog/paper-dialog.html"/>
@@ -46,13 +47,12 @@
 		}
 	</style>
   <template>
-  	
   	<template is="dom-if" if="[[__isJSON(mode)]]">
   		<iron-ajax
 	    auto
 	    url="[[file]]"
 	    handle-as="json"
-	    last-response="{{docs}}"
+	    last-response="{{jsonRes}}"
 	    debounce-duration="300"></iron-ajax>
   	</template>
   	<template is="dom-if" if="[[!__isJSON(mode)]]">
@@ -63,7 +63,7 @@
 	    last-response="{{yamlStr}}"
 	    debounce-duration="300"></iron-ajax>
 	    
-	    <yaml-parser yaml="[[yamlStr]]" json="{{docs}}"></yaml-parser>
+	    <yaml-parser yaml="[[yamlStr]]" json="{{jsonRes}}"></yaml-parser>
   	</template>
     
     <excess-router-config
@@ -87,10 +87,11 @@
   </template>
 
   <script>
-    Polymer({
+    var ele = Polymer({
       is: 'lazy-page-manager',
-	  bahaviors:[
-		  lazyPageBehavior
+	  behaviors:[
+		  lazyPageBehavior,
+		  lazyPageReduxBehavior
 	  ],
       properties: {
 	    inited:{
@@ -112,21 +113,33 @@
         },
         docs:{
 	        type:Object,
-	        notify:true,
-	        observer:"__global_docs"
+	        statePath:"doc",
+        },
+        config:{
+	        type:Object,
+	        statePath:"config"
         },
         start:{
 	        type:Boolean,
 	        value:true
         }
       },
-      ready:function(){
-	     
+      actions:{
+	      init:function(doc){
+		      var config = Object.assign({},doc.config.global,doc.config[doc.build]);
+		      return {
+			      type:"INIT",
+			      doc:doc,
+			      config:config
+		      }
+	      }
       },
-	  __global_docs:function(docs){
-// 		  console.log(docs);
-		  __lazyPageDocs = docs;
-	  },
+      observers:[
+	      "__initDoc(jsonRes.*)"
+      ],
+      __initDoc:function(doc){
+	      this.dispatch("init",doc.base)
+      },
 	  __isDev:function(init,build){
 		  return init&&build=="dev";
 	  },
@@ -148,6 +161,7 @@
 			display:block;
 			height:100%;
 			width:100%;
+			position: relative;
 		}
 		:host #page_container{
 			position: absolute;
@@ -180,11 +194,7 @@
 			attr-for-selected="data-page"
 			selected-attribute="active">
 		</neon-animated-pages>
-<!--
-		<iron-pages>
-		</iron-pages>
--->
-		
+	
 		<iron-overlay-backdrop id="backdrop"></iron-overlay-backdrop>
 		<iron-selector 
 			id="dialog_container"

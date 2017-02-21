@@ -3,10 +3,11 @@
 <link rel="import" href="../neon-animation/neon-animatable-behavior.html"/>
 <link rel="import" href="../neon-animation/neon-animation-behavior.html"/>
 <link rel="import" href="../neon-animation/neon-animations.html"/>
+<link rel="import" href="lazy-page-redux-behaviors.html"/>
 <script>
 	var __lazyPageDocs=null;
 	var __lazyPageModule={};
-	lazyPageBehavior=[Polymer.IronResizableBehavior,{
+	lazyPageBehavior=[Polymer.IronResizableBehavior,lazyPageReduxBehavior,{
 		properties:{
 			dataPage:{
 				type:String
@@ -30,30 +31,26 @@
 				observer:"__activeChanged"
 			},
 			config:{
-				type:Function,
-				value:function(){
-					return function(){
-						var key = arguments[0];
-						var config = Object.assign(__lazyPageDocs.config.global,__lazyPageDocs.config[__lazyPageDocs.build]);
-				
-						if(typeof(config[key])!="undefined"){
-							return config[key];
-						}
-						return null;
-					}
-				}
+				type:Object,
+				statePath:"config"
 			},
 			sitemap:{
-				type:Function,
-				value:function(){
-					return function(){
-						return __lazyPageDocs.sitemap;
-					}
-				}
+				type:Object,
+				statePath:"doc.sitemap"
+			},
+			shared:{
+				type:Object,
+				statePath:"shared"
 			}
 		},
-		__storage:function(){
-			
+		actions:{
+			shared:function(key,value){
+				return {
+					type:"SET_SHARED",
+					key:key,
+					value:value
+				}
+			}
 		},
 		__activeChanged:function(b){
 			if(!this.isUndefined(b,this.activeReady)){

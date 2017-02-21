@@ -4,8 +4,11 @@
 	<a href="#!/home/list">list</a>
 	<a href="#!/home/detail">detail</a>
 	<a href="#!/home/detail1">detail1</a>
+	[[config.status]]
+	[[storage.abc]]
 	<button on-click="test">test</button>
 	<content select="lazy-pages"></content>
+	
 	
 	</template>
 	<script>
@@ -15,25 +18,23 @@
 				lazyPageBehavior
 			],
 			properties:{
-				status:{
-					type:Object,
-					computed:"config('status')"
-				}
+				
 			},
 			ready:function(){
-				console.log(123);
-				var a = this.isUndefined(false);
-				console.log(a);
+				console.log(this.config);
 			},
 			activeReady:function(){
 				this.async(function(){
-					console.log("activeReady",this.status);
+					console.log(this.config)
+// 					console.log("activeReady",this.status);
 				});
 				
 			},
 			test:function(){
-// 				this.$.aaa.open();
-
+				this.dispatch("shared","abc","aaa");
+				this.async(function(){
+					console.log(this.getState());
+				})
 			}
 		})
 	</script>
@@ -44,7 +45,8 @@
 	<template>
 	[[text]]
 	<div>
-		remark
+		123
+		remark [[abc]]
 	</div>
 	<template is="dom-repeat" items="[[errors]]">
 		<div>
@@ -60,6 +62,12 @@
 			behaviors:[
 				lazyPageBehavior
 			],
+			properties:{
+				abc:{
+					type:Object,
+					statePath:"shared.abc"
+				}
+			},
 			ready:function(){
 				
 			},
