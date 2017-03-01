@@ -121,10 +121,19 @@
 </dom-module>
 
 <dom-module id="x-home-detail">
+	<style>
+		:host{
+			width:30vw;
+			height:30vh;
+			background:#fff;
+			display:block;
+			
+		}
+	</style>
 	<template>
 	[[params.id]]
 	detail
-	<div style="width:500px;height:500px;background:red;"></div>
+
 	<content></content>
 	</template>
 	<script>
@@ -134,16 +143,13 @@
 				
 			},
 			behaviors:[
-				lazyDialogBehavior
+				lazyAnimationDialogBehavior
 			],
 			ready:function(){
 // 				this.open();
 			},
 			__confirm:function(){
-				return new Promise(function(resolve,reject){
-					alert(1);
-					resolve();
-				})
+				return this.exit();
 			}
 		})
 	</script>

@@ -2,6 +2,7 @@
 <link rel="import" href="../iron-overlay-behavior/iron-overlay-behavior.html">
 <link rel="import" href="../neon-animation/neon-animatable-behavior.html"/>
 <link rel="import" href="../neon-animation/neon-animation-behavior.html"/>
+<link rel="import" href="../neon-animation/neon-animation-runner-behavior.html"/>
 <link rel="import" href="../neon-animation/neon-animations.html"/>
 <link rel="import" href="../lazy-behavior/lazy-common-behavior.html"/>
 <link rel="import" href="lazy-page-redux-behaviors.html"/>
@@ -99,7 +100,7 @@
 	}];
 	
 	lazyAnimationBehavior=[
-		Polymer.NeonAnimatableBehavior,
+		Polymer.NeonAnimationRunnerBehavior,
 		{
 			properties:{
 				animationConfig: {
@@ -109,16 +110,44 @@
 				            'entry': {
 				             	name: 'fade-in-animation',
 				             	node:this,
-				             	timing:500
+				             	timing:200
 				            },
 				            'exit': {
 				              	name: 'fade-out-animation',
 				             	node:this,
-				             	timing:500
+				             	timing:200
 				            }
 						};
 			        }
 			    },
+			},
+			observers:[
+				"__active(active)"
+			],
+			__active:function(active){
+				if(active){
+					this.entry();
+				}
+			},
+			entry:function(){
+				return new Promise(function(resolve){
+					var listener = function(){
+						this.removeEventListener("neon-animation-finish",listener);
+						resolve();
+					}
+					this.addEventListener("neon-animation-finish",listener);
+					this.playAnimation("entry");
+				}.bind(this));
+			},
+			exit:function(){
+				return new Promise(function(resolve,reject){
+					var listener = function(){
+						this.removeEventListener("neon-animation-finish",listener);
+						resolve();
+					}
+					this.addEventListener("neon-animation-finish",listener);
+					this.playAnimation("exit");
+				}.bind(this))
 			}
 		}
 	];
