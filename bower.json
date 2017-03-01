@@ -15,7 +15,9 @@
     "paper-dialog": "^1.1.0",
     "iron-selector": "^1.5.2",
     "iron-overlay-behavior": "PolymerElements/iron-overlay-behavior#^1.10.2",
-    "polymer-redux": "^0.4.0"
+    "polymer-redux": "^0.4.0",
+    "lazy-behavior": "https://github.com/kudorori/polymer-lazy-behavior.git",
+    "lazy-router": "https://github.com/kudorori/polymer-lazy-router.git"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

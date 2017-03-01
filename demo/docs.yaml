@@ -1,7 +1,7 @@
 
 info:
   title: 123
-build: publish
+build: dev
 config: 
   global:
     #共用參數
@@ -12,29 +12,13 @@ config:
     #正式機使用的config
 elementsDir: apps
 defaultPath: /home
+roles:
 sitemap:
   - pattern: /home
     ele: x-home
     fragments:
       - x-home-header
       - x-home-footer
-    dev:
-      remark:
-        - text
-        - text
-      cases:
-        - title: 案例1
-          properties:
-            id: 1
-            status: 1
-        - title: 註冊成功
-          properties:
-            id: 1
-            status: 1
-        - title: 註冊失敗
-          properties:
-            id: 1
-            status: 1
     pages: 
       - pattern: /list
         ele: x-home-list
@@ -42,29 +26,6 @@ sitemap:
           - pattern: /detail
             ele: x-home-detail
             dialog: true
-      - pattern: /list1
-        ele: x-home-list-2
-      - pattern: /list2
-        ele: x-home-list
-      - pattern: /list3
-        ele: x-home-list
       - pattern: /detail
         ele: x-home-detail
         dialog: true
-      
-  - pattern: /news
-    ele: x-news
-    fragments:
-      - x-news-header
-      - x-news-footer
-    pages: 
-      - pattern: ""
-        ele: x-home-list
-      - pattern: /:id
-        ele: x-home-detail
-      - pattern: /:id/:id2
-        ele: x-home-detail
-  - pattern: /a/:id/:id2
-    ele: x-news
-      
-    

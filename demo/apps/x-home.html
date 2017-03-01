@@ -4,11 +4,9 @@
 	<a href="#!/home/list">list</a>
 	<a href="#!/home/detail">detail</a>
 	<a href="#!/home/detail1">detail1</a>
-	[[config.status]]
-	[[storage.abc]]
 	<button on-click="test">test</button>
+	<button on-click="test1">test1</button>
 	<content select="lazy-pages"></content>
-	
 	
 	</template>
 	<script>
@@ -26,15 +24,18 @@
 			activeReady:function(){
 				this.async(function(){
 					console.log(this.config)
-// 					console.log("activeReady",this.status);
 				});
-				
 			},
 			test:function(){
-				this.dispatch("shared","abc","aaa");
-				this.async(function(){
-					console.log(this.getState());
-				})
+				var m = document.querySelector("#manager");
+				m.setRole([
+					"/home/list"
+				]);
+			},
+			test1:function(){
+// 				console.log(this.lazyPages.filter_pages);
+				var m = document.querySelector("#manager");
+				m.setRole([]);
 			}
 		})
 	</script>
@@ -70,6 +71,9 @@
 			},
 			ready:function(){
 				
+			},
+			activeReady:function(){
+				console.log("ready");
 			},
 			case1:function(e){
 				//模仿ajax response
@@ -134,6 +138,12 @@
 			],
 			ready:function(){
 // 				this.open();
+			},
+			__confirm:function(){
+				return new Promise(function(resolve,reject){
+					alert(1);
+					resolve();
+				})
 			}
 		})
 	</script>

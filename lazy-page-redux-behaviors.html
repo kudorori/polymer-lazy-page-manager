@@ -5,7 +5,8 @@
 	var initState = {
 		doc:{},
 		config:{},
-		shared:{}
+		shared:{},
+		roles:[]
 	}
 	
 	var reducer = function(state,action){
@@ -18,6 +19,9 @@
 					config:action.config,
 					doc:action.doc
 				})
+				break;
+			case "ROLE":
+				state.roles = action.value;
 				break;
 			case "SET_SHARED":
 				var value = {};

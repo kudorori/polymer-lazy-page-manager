@@ -2,8 +2,6 @@
 <link rel="import" href="../yaml-parser/yaml-parser.html"/>
 <link rel="import" href="../iron-ajax/iron-ajax.html"/>
 <link rel="import" href="../iron-pages/iron-pages.html"/>
-<!-- <link rel="import" href="demo/apps/x-home.html"/> -->
-<link rel="import" href="../excess-router/excess-router.html"/>
 <link rel="import" href="../iron-localstorage/iron-localstorage.html"/>
 <link rel="import" href="../iron-location/iron-location.html"/>
 <link rel="import" href="lazy-page-behavior.html"/>
@@ -15,6 +13,7 @@
 <link rel="import" href="../neon-animation/neon-animations.html"/>
 <link rel="import" href="../neon-animation/neon-animated-pages.html"/>
 <link rel="import" href="../neon-animation/neon-animatable-behavior.html"/>
+<link rel="import" href="../lazy-router/lazy-router.html"/>
 
 
 <!--
@@ -66,22 +65,27 @@
 	    <yaml-parser yaml="[[yamlStr]]" json="{{jsonRes}}"></yaml-parser>
   	</template>
     
-    <excess-router-config
-	  page-style="hash"
-	  hash-prefix="#!"
-	></excess-router-config>
-	<template is="dom-if" if="[[inited]]">
-		<excess-route route="/(.*)" redirect-to="[[docs.defaultPath]]" activation-modifiers="x"></excess-route>
+  	<template is="dom-if" if="[[inited]]">
+		<lazy-router-config
+			default-to="[[docs.defaultPath]]"></lazy-router-config>
 	</template>
-    
+	
     <template is="dom-if" if="[[start]]">
     	<div id="container" class=" layout vertical">
 		    <div id="page" class="flex">
-			    <lazy-pages __inited="{{inited}}" pages="[[docs.sitemap]]" elements-dir="[[docs.elementsDir]]" start></lazy-pages>
+			    <lazy-pages 
+			    	hidden="[[!inited]]"
+			    	__inited="{{inited}}" 
+			    	pages="[[docs.sitemap]]" 
+			    	roles="[[roles]]"
+			    	start>
+			    </lazy-pages>
 		    </div>
+<!--
 		    <template is="dom-if" if="[[__isDev(inited,docs.build)]]">
 		    	<lazy-page-dev-tool></lazy-page-dev-tool>
 		    </template>
+-->
 	    </div>
     </template>
   </template>
@@ -115,6 +119,10 @@
 	        type:Object,
 	        statePath:"doc",
         },
+        roles:{
+	        type: Object,
+	        statePath:"roles"
+        },
         config:{
 	        type:Object,
 	        statePath:"config"
@@ -122,21 +130,51 @@
         start:{
 	        type:Boolean,
 	        value:true
+        },
+        _defaultPath:{
+	        type: String,
+	        statePath: "doc.defaultPath"
+        },
+        defaultPath:{
+	        type: String,
+	        value:""
         }
       },
       actions:{
-	      init:function(doc){
+	      init: function(doc){
 		      var config = Object.assign({},doc.config.global,doc.config[doc.build]);
 		      return {
 			      type:"INIT",
 			      doc:doc,
 			      config:config
-		      }
+		      };
+	      },
+	      role: function(roles){
+		      return {
+			      type: "ROLE",
+			      value: roles
+		      };
 	      }
       },
       observers:[
-	      "__initDoc(jsonRes.*)"
+	      "__initDoc(jsonRes.*)",
+	      "__test(roles)"
       ],
+      __test:function(a){
+	      console.log("update role");
+      },
+	  setRole:function(roles){
+		  this.start=false;
+		  if(Array.isArray(roles)){
+			  this.dispatch("role",roles);
+		  }
+		  this.async(function(){
+			   this.start=true;
+		  },100);
+	  },
+	  __getDefaultPath:function(d1,d2){
+		  return ["",undefined,null].indexOf(d1)==-1?d1:d2;
+	  },
       __initDoc:function(doc){
 	      this.dispatch("init",doc.base)
       },
@@ -179,15 +217,14 @@
 	</style>
 	<template>
 		<iron-location hash="{{hash}}" url-space-regex="!(#\!)" ></iron-location>
-		<template id="tmp" is="dom-repeat" items="[[pages]]">
-			<template is="dom-if" if="[[__isStart(__inited,start)]]" restamp>
-				<excess-route 
-					route$="[[baseUrl]][[item.pattern]][[__suffix(item.pages)]]" 
-					on-excess-route-will-activate="__activeChanged" 
-					on-excess-route-will-deactivate="__deactiveChanged">
-				</excess-route>
+		<lazy-router
+			on-active="__activeChanged"
+			on-deactive="__deactiveChanged">
+			<template id="tmp" is="dom-repeat" items="[[filter_pages]]">
+				<lazy-route route$="[[baseUrl]][[item.pattern]][[__suffix(item.pages)]]"></lazy-route>
 			</template>
-		</template>
+		</lazy-router>
+
 		<neon-animated-pages
 			id="page_container" 
 			selected$="[[__pageSelected]]" 
@@ -207,18 +244,28 @@
 	<script>
 		Polymer({
 			is:"lazy-pages",
+			behaviors:[
+				lazyPageReduxBehavior,
+				lazyCommonBehavior
+			],
 			properties:{
 				elementsDir:{
 					type:String,
-					value:"/"
+					statePath: "doc.elementsDir"
 				},
 				pages:{
+					type: Object
+				},
+				filter_pages:{
 					type: Object,
-					observer: "__pagesChanged"
+					computed:"__filter_pages(baseUrl,pages,roles)"
 				},
 				baseUrl:{
 					type: String,
 					value: ""
+				},
+				roles:{
+					type:Object
 				},
 				__pageSelected:{
 					type:String,
@@ -230,9 +277,22 @@
 					value:false,
 					notify:true
 				},
+				__activing:{
+					type:Boolean,
+					value:false
+				},
 				start:{
 					type:Boolean,
 					value:false
+				}
+			},
+			observers:[
+				"__bindPages(baseUrl,filter_pages)"
+			],
+			detached:function(e){
+				var routes = Polymer.dom(this.root).querySelectorAll("excess-route");
+				for(var key in routes){
+					Polymer.dom(this.root).removeChild(routes[key]);
 				}
 			},
 			__suffix:function(pages){
@@ -244,19 +304,46 @@
 				};
 				return "";
 			},
-			__pageSelectedChanged:function(e){
-// 				console.log(e);
+			__pattern2regex:function(pattern){
+				var str = pattern.replace(/\/:[\w]*/g, "[\\w]*");
+				return new RegExp(str);
 			},
-			__pagesChanged:function(pages){
+			__pageSelectedChanged:function(e){
+
+			},
+			__filter_pages:function(baseUrl,_pages){
+				//透過roles將pages過濾並回傳
+				var that = this;
+				var _roles = this.roles;
+				var pages = _pages;
+				if(_roles!=undefined&&_roles.length>0){
+					pages = _pages.filter(function(item){
+						var test = new RegExp(that.__pattern2regex(baseUrl+item.pattern));
+						return _roles.some(function(role){
+							return test.test(role);
+						})
+					});
+				}
+				return pages;
+			},
+			__bindPages:function(baseUrl,pages){
 				this.__inited=false;
+				var page_container = Polymer.dom(this.$.page_container);
+				var dialog_container = Polymer.dom(this.$.dialog_container);
+				var route_container = Polymer.dom(this.$.route_container);
+				while (page_container.children.length>0) {   
+					page_container.removeChild(page_container.children[0]);
+				}
+				while (dialog_container.children.length>0) {   
+					dialog_container.removeChild(dialog_container.children[0]);
+				}
+				
 				new Promise(function(resolve,reject){
-					this.$.page_container.innerHTML = "";
-					this.$.dialog_container.innerHTML="";
 					//將pages放置到對應的位置上
 					pages.forEach(function(page){
 						var page_id = this.baseUrl+page.pattern;
-						__lazyPageModule[page_id]=document.createElement(page.ele);
-						var ele = __lazyPageModule[page_id]
+						var ele = document.createElement(page.ele);
+						
 						ele.setAttribute("data-page",page_id);
 						if(page.fragments!=undefined){
 							Object.keys(page.fragments).forEach(function(ekey){
@@ -281,8 +368,8 @@
 						var ele = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");
 						if(page.pages!=undefined){
 							var __lazyPages = document.createElement("lazy-pages");
-							__lazyPages.set("elementsDir",this.elementsDir);
 							__lazyPages.set("baseUrl",[this.baseUrl,page.pattern].join(""));
+							__lazyPages.set("roles",this.roles);
 							__lazyPages.set("pages",page.pages);
 							Polymer.dom(ele).appendChild(__lazyPages);
 						}
@@ -296,35 +383,28 @@
 			__deactiveChanged:function(e){
 				//判斷所有的路由是不是通通失效了
 				//如果通通失效了，就確認上一次執行的module是否已經結束狀態
-				var model = this.$.tmp.modelForElement(e.target);
-				var pattern = this.baseUrl+model.item.pattern;
-				this.async(function(){
-					var routes = Polymer.dom(this.root).querySelectorAll("excess-route[active]");
-					if(routes.length==0){
-						var old_page_id = this.__pageSelected;
-						this.__confirmPage(old_page_id).then(function(){
-							if(model.item.dialog){
-								this.$.backdrop.close();
-							}
-							this.set("__pageSelected",null);
-						}.bind(this)).catch(function(obj){
-							console.log(obj);
-						}.bind(this));
+				var old_page_id = this.__pageSelected;
+				this.__confirmPage(old_page_id).then(function(){
+					if(this.$.backdrop.opened){
+						this.$.backdrop.close();
 					}
-				},1);
+					this.set("__pageSelected",null);
+				}.bind(this)).catch(function(obj){
+					console.log(obj);
+				}.bind(this));
 			},
 			__activeChanged:function(e){
+				if(this.__activing){
+					return;
+				}
+				this.__activing=true;
 				//如果有匹配的路由，則呼叫
-				
 				var that = this;
-				var model = this.$.tmp.modelForElement(e.target);
-				var page_id = this.baseUrl+model.item.pattern;				
-				var module = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");
-				var router = e.target;				
+				var model = this.$.tmp.modelForElement(e.detail.target);
+				var page_id = this.baseUrl+model.item.pattern;			
+				var module = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");		
 				var old_page_id = this.__pageSelected;
 				var old_module = Polymer.dom(this.root).querySelector("[data-page='"+old_page_id+"']");
-				
-				
 				new Promise(function(resolve,reject){
 					//判斷Polymer模組是不是已經初始化了
 					Polymer.isInstance(module)?resolve():reject();
@@ -343,18 +423,17 @@
 					return new Promise(function(resolve,reject){
 						that.async(function(){
 							var __lazyPage = Polymer.dom(module).querySelector("lazy-pages");
-							var routeParams = router.routeParams;
-							module.set("params",routeParams||{});
+							module.set("params",e.params);
 							if(__lazyPage!=null){
 								__lazyPage.set("start",true);
+								module.set("lazyPages",__lazyPage);
 							}
 							resolve();
 						},50);
 					})
 				}.bind(this)).then(function(){
 					//確認之前的模組是否已經結束？
-					
-					if(page_id!=old_page_id){
+					if(page_id!=old_page_id&&!this.isUndefined(old_page_id)){
 						return new Promise(function(resolve,reject){
 							this.__confirmPage(old_page_id).then(function(){
 								//上一個模組已確認結束
@@ -366,7 +445,6 @@
 								}else{
 									reject("上一個模組拒絕離開頁面");
 								}
-								
 							});
 						}.bind(this));
 					}
@@ -376,11 +454,11 @@
 					}else{
 						that.$.backdrop.close();
 					}
-					
 					that.set("__pageSelected",page_id);
-					
+					that.__activing=false;
 				}).catch(function(err){
 					console.error(err);
+					that.__activing=false;
 				});
 				
 				
@@ -464,6 +542,7 @@
 				"__getDoc(hash)"
 			],
 			__getDoc:function(hash){
+/*
 				this.async(function(){
 					var docs = this.activity();
 					if(docs.doc.dev!=undefined){
@@ -475,8 +554,8 @@
 						this.set("cases",[]);
 						this.set("ele",null);
 					}
-					
 				});
+*/
 			},
 			callTest:function(e){
 				var model = e.model;

@@ -7,12 +7,14 @@
     <title>lazy-page-manager demo</title>
 
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+<!--
 	<script>
 		window.Polymer = {
 	      dom: 'shadow',
 	      lazyRegister: true
 	    };
 	</script>
+-->
     <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
     <link rel="import" href="../lazy-page-manager.html">
@@ -26,7 +28,7 @@
       <demo-snippet>
         <template>
           <div style="height:400px;">
-	          <lazy-page-manager></lazy-page-manager>
+	          <lazy-page-manager id="manager" default-path="/home/list"></lazy-page-manager>
           </div>
         </template>
       </demo-snippet>
