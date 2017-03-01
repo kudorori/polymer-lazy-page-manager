@@ -218,6 +218,7 @@
 	<template>
 		<iron-location hash="{{hash}}" url-space-regex="!(#\!)" ></iron-location>
 		<lazy-router
+			stop="[[!start]]"
 			on-active="__activeChanged"
 			on-deactive="__deactiveChanged">
 			<template id="tmp" is="dom-repeat" items="[[filter_pages]]">
@@ -381,6 +382,9 @@
 				
 			},
 			__deactiveChanged:function(e){
+				if(!this.start){
+					return;
+				}
 				//判斷所有的路由是不是通通失效了
 				//如果通通失效了，就確認上一次執行的module是否已經結束狀態
 				var old_page_id = this.__pageSelected;
@@ -394,7 +398,7 @@
 				}.bind(this));
 			},
 			__activeChanged:function(e){
-				if(this.__activing){
+				if(this.__activing||!this.start){
 					return;
 				}
 				this.__activing=true;
