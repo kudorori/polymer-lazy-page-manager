@@ -17,7 +17,8 @@
     "iron-overlay-behavior": "PolymerElements/iron-overlay-behavior#^1.10.2",
     "polymer-redux": "^0.4.0",
     "lazy-behavior": "https://github.com/kudorori/polymer-lazy-behavior.git",
-    "lazy-router": "https://github.com/kudorori/polymer-lazy-router.git"
+    "lazy-router": "https://github.com/kudorori/polymer-lazy-router.git",
+    "iron-sessionstorage": "frenchnz/iron-sessionstorage#^1.0.1"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

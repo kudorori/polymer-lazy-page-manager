@@ -73,33 +73,13 @@
 				lazyAnimationPageBehavior
 			],
 			properties:{
-				abc:{
-					type:Object,
-					statePath:"shared.abc"
-				},
-				animationConfig: {
-			        type: Object,
-			        value: function() {
-			          	return {
-				            entry:{
-					            name: "slide-from-right-animation",
-					            node: this,
-					            timing: 300
-				            },
-				            exit:{
-					            name: "slide-left-animation",
-					            node: this,
-					            timing: 300
-				            }
-						};
-			        }
-			    }
+				
 			},
 			ready:function(){
 				
 			},
 			activeReady:function(){
-				console.log("ready");
+				console.log("ready",this.animationConfig);
 			},
 			case1:function(e){
 				//模仿ajax response
@@ -189,28 +169,20 @@
 */
 		Polymer({
 			is:"x-home-detail",
-			properties:{
-				animationConfig: {
-			        type: Object,
-			        value: function() {
-			          	return {
-				            entry:{
-					            name: "slide-from-bottom-animation",
-					            node: this,
-					            timing: 300
-				            },
-				            exit:{
-					            name: "slide-down-animation",
-					            node: this,
-					            timing: 300
-				            }
-						};
-			        }
-			    }
-			},
 			behaviors:[
 				lazyAnimationDialogBehavior
 			],
+			properties:{
+				entryAnimation:{
+					value: "slide-from-bottom-animation"
+				},
+				exitAnimation:{
+					value: "slide-down-animation"
+				}
+			},
+			activeReady:function(){
+				console.log(this.animationConfig);
+			},
 			ready:function(){
 // 				this.open();
 			},

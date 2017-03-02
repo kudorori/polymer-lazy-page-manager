@@ -99,71 +99,127 @@
 		}
 	}];
 	
-	lazyAnimationBehavior=[
+	lazyAnimationBehaviorImp=[
+		lazyPageReduxBehavior,
 		Polymer.NeonAnimationRunnerBehavior,
 		{
 			properties:{
+				entryAnimation:{
+					type: String,
+					value: ""
+				},
+				exitAnimation:{
+					type: String,
+					value: ""
+				},
+				transitionMode:{
+					type: Boolean,
+					statePath: "transitionBackMode"
+				},
+				transition:{
+					type: Object,
+					statePath: "transition"
+				},
+				backTransition:{
+					type: Object,
+					statePath: "backTransition"
+				},
 				animationConfig: {
 			        type: Object,
-			        value: function() {
-			          	return {
-				            'entry': {
-				             	name: 'fade-in-animation',
-				             	node:this,
-				             	timing:200
-				            },
-				            'exit': {
-				              	name: 'fade-out-animation',
-				             	node:this,
-				             	timing:200
-				            }
-						};
-			        }
-			    },
+					computed: "__updateAnimationConfig(transitionMode,transition,backTransition,entryAnimation,exitAnimation)"
+			    }
 			},
-			observers:[
-				"__active(active)"
-			],
-			__active:function(active){
-				if(active){
-					console.log("play");
-					this.entry();
+			__updateAnimationConfig:function(isBack,transition,backTransition,entry,exit){
+				var result = {}
+// 				console.log(isBack);
+				if(isBack){
+					result = Object.assign({
+						entry: Object.assign({},backTransition.entry,{
+							node: this
+						}),
+						exit: Object.assign({},backTransition.exit,{
+							node: this
+						})
+					});
+					return result;
+				}else{
+					result = Object.assign({
+						entry: Object.assign({},transition.entry,{
+							node: this
+						}),
+						exit: Object.assign({},transition.exit,{
+							node: this
+						})
+					});
 				}
+				
+				if([undefined,null,""].indexOf(entry)==-1){
+					result.entry.name = entry;
+				}
+				if([undefined,null,""].indexOf(exit)==-1){
+					result.exit.name = exit;
+				}
+// 				console.log(result);
+				return result;
 			},
 			__confirm:function(){
-				return this.exit();
+				return this.__exit();
 			},
-			entry:function(){
+			__entry:function(){
 				return new Promise(function(resolve){
 					var listener = function(){
 						this.removeEventListener("neon-animation-finish",listener);
 						resolve();
-					}
+					}.bind(this)
+					
 					this.addEventListener("neon-animation-finish",listener);
 					this.async(function(){
+						this.removeAttribute("hidden");
 						this.cancelAnimation();
 						this.playAnimation("entry");
+						
 					},1);
 				}.bind(this));
 			},
-			exit:function(){
+			__exit:function(){
 				return new Promise(function(resolve,reject){
 					var listener = function(){
 						this.removeEventListener("neon-animation-finish",listener);
-						resolve();
-					}
+					}.bind(this)
 					this.addEventListener("neon-animation-finish",listener);
 					this.cancelAnimation();
 					this.playAnimation("exit");
+					resolve();
 				}.bind(this))
 			}
 		}
 	];
 	
 	lazyAnimationPageBehavior=[
-		lazyPageBehavior,lazyAnimationBehavior
+		lazyPageBehavior,
+		lazyAnimationBehaviorImp,{
+			observers:[
+				"__active(active)"
+			],
+			__active:function(active){
+				if(active){
+					this.__entry();
+				}
+			}
+		}
 	];
 	lazyAnimationDialogBehavior=[
-		lazyDialogBehavior,lazyAnimationBehavior
+		lazyDialogBehavior,
+		lazyAnimationBehaviorImp,{
+			_renderOpened:function(){
+				this.setAttribute("hidden",true);
+				this.__entry().then(function(){
+					this._finishRenderOpened();
+				}.bind(this));
+			},
+			_renderClosed:function(){
+				this._finishRenderClosed();
+			}
+		}
 	];
 </script>

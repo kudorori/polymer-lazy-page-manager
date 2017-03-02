@@ -1,17 +1,36 @@
 <link rel="import" href="../polymer-redux/polymer-redux.html" />
 <script src="node_modules/redux/dist/redux.js"></script>
 
-<script>
-	var initState = {
-		doc:{},
-		config:{},
-		shared:{},
-		roles:[]
-	}
-	
+<script>	
 	var reducer = function(state,action){
 		if(!state){
-			return initState;
+			return {
+				doc:{},
+				config:{},
+				shared:{},
+				roles:[],
+				transitionBackMode: false,
+				transition:{
+					entry: {
+						name: "slide-from-right-animation",
+						timing: 200
+					},
+					exit: {
+						name: "slide-left-animation",
+						timing: 200
+					}
+				},
+				backTransition:{
+					entry: {
+						name: "slide-from-left-animation",
+						timing: 200
+					},
+					exit: {
+						name: "slide-right-animation",
+						timing: 200
+					}
+				}
+			};
 		}
 		switch(action.type){
 			case "INIT":
@@ -27,6 +46,15 @@
 				var value = {};
 				value[action.key]=action.value;
 				state.shared = Object.assign(state.shared,value);
+				break;
+			case "TRANSITION":
+				state = Object.assign(state,action.value);
+				break;
+			case "SET_TRANSITION_AS_BACK":
+				state.transitionBackMode = true
+				break;
+			case "SET_TRANSITION_AS_DEFAULT":
+				state.transitionBackMode = false
 				break;
 		}
 		return state;

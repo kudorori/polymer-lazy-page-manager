@@ -14,6 +14,7 @@
 <link rel="import" href="../neon-animation/neon-animated-pages.html"/>
 <link rel="import" href="../neon-animation/neon-animatable-behavior.html"/>
 <link rel="import" href="../lazy-router/lazy-router.html"/>
+<link rel="import" href="../iron-sessionstorage/iron-sessionstorage.html"/>
 
 
 <!--
@@ -61,7 +62,6 @@
 	    handle-as="text"
 	    last-response="{{yamlStr}}"
 	    debounce-duration="300"></iron-ajax>
-	    
 	    <yaml-parser yaml="[[yamlStr]]" json="{{jsonRes}}"></yaml-parser>
   	</template>
     
@@ -81,11 +81,6 @@
 			    	start>
 			    </lazy-pages>
 		    </div>
-<!--
-		    <template is="dom-if" if="[[__isDev(inited,docs.build)]]">
-		    	<lazy-page-dev-tool></lazy-page-dev-tool>
-		    </template>
--->
 	    </div>
     </template>
   </template>
@@ -154,14 +149,20 @@
 			      type: "ROLE",
 			      value: roles
 		      };
+	      },
+	      setTransitionAsBack: function(){
+		      return {
+			      type: "SET_TRANSITION_AS_BACK"
+		      }
 	      }
       },
       observers:[
-	      "__initDoc(jsonRes.*)",
-	      "__test(roles)"
+	      "__initDoc(jsonRes.*)"
       ],
-      __test:function(a){
-	      console.log("update role");
+      __popstate:function(e){
+	      history.replaceState(this._hash);
+	      console.log(e);
+	      console.log(history);
       },
 	  setRole:function(roles){
 		  this.start=false;
