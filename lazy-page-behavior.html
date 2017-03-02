@@ -130,6 +130,9 @@
 					this.entry();
 				}
 			},
+			__confirm:function(){
+				return this.exit();
+			},
 			entry:function(){
 				return new Promise(function(resolve){
 					var listener = function(){
