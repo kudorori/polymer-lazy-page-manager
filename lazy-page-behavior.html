@@ -126,6 +126,7 @@
 			],
 			__active:function(active){
 				if(active){
+					console.log("play");
 					this.entry();
 				}
 			},
@@ -136,7 +137,10 @@
 						resolve();
 					}
 					this.addEventListener("neon-animation-finish",listener);
-					this.playAnimation("entry");
+					this.async(function(){
+						this.cancelAnimation();
+						this.playAnimation("entry");
+					},1);
 				}.bind(this));
 			},
 			exit:function(){
@@ -146,6 +150,7 @@
 						resolve();
 					}
 					this.addEventListener("neon-animation-finish",listener);
+					this.cancelAnimation();
 					this.playAnimation("exit");
 				}.bind(this))
 			}

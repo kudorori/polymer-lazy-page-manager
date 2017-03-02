@@ -2,11 +2,16 @@
 	<template>
 	<iron-localstorage name="auth" value="{{auth}}"></iron-localstorage>
 	<a href="#!/home/list">list</a>
+	<a href="#!/home/list1">1</a>
+	<a href="#!/home/list2">2</a>
 	<a href="#!/home/detail">detail</a>
-	<a href="#!/home/detail1">detail1</a>
+	
 	<button on-click="test">test</button>
 	<button on-click="test1">test1</button>
-	<content select="lazy-pages"></content>
+	<div style="position: relative;width:500px;height:500px;background:#ddd;">
+		<content select="lazy-pages"></content>
+	</div>
+	
 	
 	</template>
 	<script>
@@ -43,6 +48,8 @@
 
 
 <dom-module id="x-home-list">
+	<style>
+	</style>
 	<template>
 	[[text]]
 	<div>
@@ -55,19 +62,38 @@
 		</div>
 	</template>
 	
-	<content select="lazy-pages"></content>
+	<div>
+		<content select="lazy-pages"></content>
+	</div>
 	</template>
 	<script>
 		Polymer({
 			is:"x-home-list",
 			behaviors:[
-				lazyPageBehavior
+				lazyAnimationPageBehavior
 			],
 			properties:{
 				abc:{
 					type:Object,
 					statePath:"shared.abc"
-				}
+				},
+				animationConfig: {
+			        type: Object,
+			        value: function() {
+			          	return {
+				            entry:{
+					            name: "slide-from-right-animation",
+					            node: this,
+					            timing: 300
+				            },
+				            exit:{
+					            name: "slide-left-animation",
+					            node: this,
+					            timing: 300
+				            }
+						};
+			        }
+			    }
 			},
 			ready:function(){
 				
@@ -123,24 +149,64 @@
 <dom-module id="x-home-detail">
 	<style>
 		:host{
+/*
 			width:30vw;
 			height:30vh;
+*/
 			background:#fff;
 			display:block;
-			
+			position: fixed;
+		    bottom: 0;
+		    left: 0;
+		    right: 0;
+/* 		    top:0px; */
+		    height: 300px;
+/* 		    width: 100vw; */
+		    margin: 0;
+		    overflow: initial !important;
 		}
 	</style>
 	<template>
 	[[params.id]]
 	detail
-
+	<button on-click="entry">entry</button>
 	<content></content>
 	</template>
 	<script>
+/*
+		'entry': {
+						      name: 'transform-animation',
+						      node: this,
+						      transformFrom: 'translateY(100%)',
+						      transformTo: 'translateY(0)'
+						    },
+						    'exit': {
+						      name: 'transform-animation',
+						      node: this,
+						      transformFrom: 'translateY(0)',
+						      transformTo: 'translateY(100%)'
+						    }
+*/
 		Polymer({
 			is:"x-home-detail",
 			properties:{
-				
+				animationConfig: {
+			        type: Object,
+			        value: function() {
+			          	return {
+				            entry:{
+					            name: "slide-from-bottom-animation",
+					            node: this,
+					            timing: 300
+				            },
+				            exit:{
+					            name: "slide-down-animation",
+					            node: this,
+					            timing: 300
+				            }
+						};
+			        }
+			    }
 			},
 			behaviors:[
 				lazyAnimationDialogBehavior
@@ -148,9 +214,11 @@
 			ready:function(){
 // 				this.open();
 			},
+/*
 			__confirm:function(){
 				return this.exit();
 			}
+*/
 		})
 	</script>
 </dom-module>

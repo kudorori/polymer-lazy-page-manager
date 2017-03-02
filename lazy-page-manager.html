@@ -194,19 +194,24 @@
 -->
 
 <dom-module id="lazy-pages">
-	<style>
+	<style is="custom-style">
 		:host{
+/*
 			display:block;
 			height:100%;
 			width:100%;
 			position: relative;
+*/
 		}
-		:host #page_container{
+		:host([active])>#page_container{
 			position: absolute;
 			top:0;
 			left:0;
 			right:0;
 			bottom:0;
+		}
+		:host>#dialog_container{
+			height:0px;
 		}
 		iron-overlay-backdrop{
 			z-index:100;
@@ -219,6 +224,7 @@
 		<iron-location hash="{{hash}}" url-space-regex="!(#\!)" ></iron-location>
 		<lazy-router
 			stop="[[!start]]"
+			active="{{active}}"
 			on-active="__activeChanged"
 			on-deactive="__deactiveChanged">
 			<template id="tmp" is="dom-repeat" items="[[filter_pages]]">
@@ -250,6 +256,11 @@
 				lazyCommonBehavior
 			],
 			properties:{
+				active:{
+					type: Boolean,
+					reflectToAttribute: true,
+					notify: true
+				},
 				elementsDir:{
 					type:String,
 					statePath: "doc.elementsDir"

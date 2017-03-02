@@ -26,6 +26,10 @@ sitemap:
           - pattern: /detail
             ele: x-home-detail
             dialog: true
+      - pattern: /list1
+        ele: x-home-list
+      - pattern: /list2
+        ele: x-home-list
       - pattern: /detail
         ele: x-home-detail
         dialog: true
