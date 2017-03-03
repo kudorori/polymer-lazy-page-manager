@@ -75,7 +75,7 @@
 		    <div id="page" class="flex">
 			    <lazy-pages 
 			    	hidden="[[!inited]]"
-			    	__inited="{{inited}}" 
+			    	initialed="{{inited}}" 
 			    	pages="[[docs.sitemap]]" 
 			    	roles="[[roles]]"
 			    	start>
@@ -235,7 +235,7 @@
 
 		<neon-animated-pages
 			id="page_container" 
-			selected$="[[__pageSelected]]" 
+			selected$="[[pageSelected]]" 
 			attr-for-selected="data-page"
 			selected-attribute="active">
 		</neon-animated-pages>
@@ -243,7 +243,7 @@
 		<iron-overlay-backdrop id="backdrop"></iron-overlay-backdrop>
 		<iron-selector 
 			id="dialog_container"
-			selected$="[[__pageSelected]]" 
+			selected$="[[pageSelected]]" 
 			attr-for-selected="data-page"
 			selected-attribute="opened">
 		</iron-selector>
@@ -280,12 +280,12 @@
 				roles:{
 					type:Object
 				},
-				__pageSelected:{
+				pageSelected:{
 					type:String,
 					value:"",
 					observer:"__pageSelectedChanged"
 				},
-				__inited:{
+				initialed:{
 					type:Boolean,
 					value:false,
 					notify:true
@@ -303,10 +303,7 @@
 				"__bindPages(baseUrl,filter_pages)"
 			],
 			detached:function(e){
-				var routes = Polymer.dom(this.root).querySelectorAll("excess-route");
-				for(var key in routes){
-					Polymer.dom(this.root).removeChild(routes[key]);
-				}
+				
 			},
 			__suffix:function(pages){
 				if(pages==undefined){
@@ -340,7 +337,7 @@
 				return pages;
 			},
 			__bindPages:function(baseUrl,pages){
-				this.__inited=false;
+				this.initialed=false;
 				var page_container = Polymer.dom(this.$.page_container);
 				var dialog_container = Polymer.dom(this.$.dialog_container);
 				var route_container = Polymer.dom(this.$.route_container);
@@ -374,7 +371,7 @@
 					}.bind(this));
 					resolve();
 				}.bind(this)).then(function(){
-					this.__inited=true;
+					this.initialed=true;
 				}.bind(this)).then(function(){
 					pages.forEach(function(page){
 						var page_id = this.baseUrl+page.pattern;
@@ -399,110 +396,143 @@
 				}
 				//判斷所有的路由是不是通通失效了
 				//如果通通失效了，就確認上一次執行的module是否已經結束狀態
-				var old_page_id = this.__pageSelected;
+				var old_page_id = this.pageSelected;
 				this.__confirmPage(old_page_id).then(function(){
 					if(this.$.backdrop.opened){
 						this.$.backdrop.close();
 					}
-					this.set("__pageSelected",null);
+					this.set("pageSelected",null);
 				}.bind(this)).catch(function(obj){
 					console.log(obj);
 				}.bind(this));
 			},
 			__activeChanged:function(e){
-				if(this.__activing||!this.start){
+				if(!this.start){
 					return;
 				}
-				this.__activing=true;
 				//如果有匹配的路由，則呼叫
 				var that = this;
-				var model = this.$.tmp.modelForElement(e.detail.target);
-				var page_id = this.baseUrl+model.item.pattern;			
-				var module = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");		
-				var old_page_id = this.__pageSelected;
-				var old_module = Polymer.dom(this.root).querySelector("[data-page='"+old_page_id+"']");
-				new Promise(function(resolve,reject){
-					//判斷Polymer模組是不是已經初始化了
-					Polymer.isInstance(module)?resolve():reject();
+				const model = this.$.tmp.modelForElement(e.detail.target);
+				const selected = this.baseUrl + model.item.pattern;	
+				const old_selected = this.pageSelected;
+				var ele = Polymer.dom(this.root).querySelector("[data-page='"+selected+"']"); 
+				var old_ele = Polymer.dom(this.root).querySelector("[data-page='"+old_selected+"']");
+				
+				//this.__checkChangePage(selected)
+				that.__isInstance(ele).then(function(){
+					console.log(ele.tagName,"isInstance");
 				}).catch(function(){
-					//去試著importHref進來
-					var importHref=this.elementsDir+"/"+module.tagName.toLowerCase()+".html";
-					return new Promise(function(resolve,reject){
-						Polymer.Base.importHref(importHref,function(){
-							resolve();
-						}.bind(this),function(){
-							reject();
-						});
-					})
-				}.bind(this)).then(function(){
-					//如果模組已經初始化或是將檔案import成功後，將裡面的lazyPages啟動
-					return new Promise(function(resolve,reject){
-						that.async(function(){
-							var __lazyPage = Polymer.dom(module).querySelector("lazy-pages");
-							module.set("params",e.params);
-							if(__lazyPage!=null){
-								__lazyPage.set("start",true);
-								module.set("lazyPages",__lazyPage);
-							}
-							resolve();
-						},50);
-					})
-				}.bind(this)).then(function(){
-					//確認之前的模組是否已經結束？
-					if(page_id!=old_page_id&&!this.isUndefined(old_page_id)){
-						return new Promise(function(resolve,reject){
-							this.__confirmPage(old_page_id).then(function(){
-								//上一個模組已確認結束
-								resolve();
-							}).catch(function(obj){
-								//發生異常之類的狀態，先保留起來
-								if(obj.continue){
-									resolve();
-								}else{
-									reject("上一個模組拒絕離開頁面");
-								}
-							});
-						}.bind(this));
-					}
-				}.bind(this)).then(function(){
+					console.log(ele.tagName,"importEle");
+					return that.__importEle(that.elementsDir,ele);
+				}).then(function(){
+					console.log(ele.tagName,"confirm")
+					return that.__confirmPage(selected,old_selected,old_ele);
+				}).catch(function(err){
+					//confirm error
+				}).then(function(){
+					return Promise.all([
+						that.__setPageSelected(selected),
+						that.__eleActive(ele,old_ele)
+					]);
+				}).then(function(){
+					console.log(ele.tagName,"import params");
+					return that.__importParams(ele, e.params);
+				}).then(function(){
 					if(model.item.dialog){
 						that.$.backdrop.open();
 					}else{
 						that.$.backdrop.close();
 					}
-					that.set("__pageSelected",page_id);
-					that.__activing=false;
+				}).then(function(msg){
+					console.log(ele.tagName,"start");
+					return that.__startLazyPages(ele);
 				}).catch(function(err){
-					console.error(err);
-					that.__activing=false;
-				});
-				
-				
+					console.log(err);
+				})
 			},
-			__isStart:function(a,b){
-				return a&&b;
-			},
-			__confirmPage:function(page_id){
-				var module = Polymer.dom(this.root).querySelector("[data-page='"+page_id+"']");
+			__confirmPage:function(newId,oldId,oldEle){
+				
+				var that = this;
 				return new Promise(function(resolve,reject){
-					if(module!=null){
-						module.__confirm().then(function(){
-							resolve()
+					if(newId!=oldId&&oldEle!=null){
+						oldEle.confirm().then(function(){
+							resolve();
 						}).catch(function(){
-							history.forward();
-							reject({
-								continue:false,
-								msg:"拒絕離開"
-							})
-						});
+							reject();
+						})
 					}else{
-						reject({
-							continue:true,
-							msg:"找不到模組"
-						});
+						resolve();
 					}
-					
-				});
+				})
+			},
+			__setPageSelected:function(selected){
+				return new Promise(function(resolve){
+					this.set("pageSelected",selected);
+					resolve();
+				}.bind(this))
+			},
+			__eleActive:function(ele,old_ele){
+				var pro = [ele.activeReady()];
+				if(old_ele!=null&&old_ele!==ele){
+					pro.push(old_ele.unActiveReady());
+				}
+				return Promise.all(pro);
+			},
+			__isInstance:function(ele){
+				/*
+					判斷element是否已經註成為polymer elements
+				*/
+				return new Promise(function(resolve,reject){
+					if(Polymer.isInstance(ele)){
+						resolve();
+					}else{
+						reject(this.__error(ele,msg));
+					}
+				}.bind(this));
+			},
+			__importEle:function(root,ele){
+				/*
+					試著將檔案import進來
+				*/
+				const href = root+"/"+ele.tagName.toLowerCase()+".html";
+				return new Promise(function(resolve,reject){
+					Polymer.Base.importHref(href,function(){
+						this.__isInstance(ele).then(function(){
+							return ele.imported();
+						}).then(function(){
+							resolve();
+						}).catch(function(){
+							reject();
+						});
+					}.bind(this),function(){
+						reject(this.__error(ele,href+" import 失敗"));
+					}.bind(this));
+				}.bind(this))
+			},
+			__startLazyPages:function(ele){
+				return new Promise(function(resolve,reject){
+					this.async(function(){
+						var __lazyPage = Polymer.dom(ele).querySelector("lazy-pages");
+						if(__lazyPage!=null){
+							__lazyPage.set("start",true);
+							ele.set("lazyPages",__lazyPage);
+						}
+						resolve();
+					},50);
+				}.bind(this))
+			},
+			__importParams:function(ele,params){
+				return new Promise(function(resolve,reject){
+					ele.set("params",params);
+					resolve();
+				}.bind(this));
+			},
+			__error:function(ele,msg){
+				console.error(ele,msg);
+				return {
+					ele: ele,
+					msg: msg
+				};
 			}
 		})
 	</script>

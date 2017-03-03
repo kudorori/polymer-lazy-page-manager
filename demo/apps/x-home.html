@@ -18,18 +18,13 @@
 		Polymer({
 			is:"x-home",
 			behaviors:[
-				lazyPageBehavior
+				lazyAnimationPageBehavior
 			],
 			properties:{
 				
 			},
 			ready:function(){
 				console.log(this.config);
-			},
-			activeReady:function(){
-				this.async(function(){
-					console.log(this.config)
-				});
 			},
 			test:function(){
 				var m = document.querySelector("#manager");
@@ -77,9 +72,6 @@
 			},
 			ready:function(){
 				
-			},
-			activeReady:function(){
-				console.log("ready",this.animationConfig);
 			},
 			case1:function(e){
 				//模仿ajax response
@@ -179,18 +171,7 @@
 				exitAnimation:{
 					value: "slide-down-animation"
 				}
-			},
-			activeReady:function(){
-				console.log(this.animationConfig);
-			},
-			ready:function(){
-// 				this.open();
-			},
-/*
-			__confirm:function(){
-				return this.exit();
 			}
-*/
 		})
 	</script>
 </dom-module>
