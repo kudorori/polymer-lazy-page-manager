@@ -4,6 +4,8 @@
 
 基於yaml&json文檔的頁面管理模組
 
+
+
 ## Example
 
 ```
@@ -49,6 +51,26 @@ sitemap:
         dialog: true
 
 ```
+
+## API
+
+`TODO`
+
+
+## Lifecycle
+```
+import
+|
+active
+|----> animaion-finish
+|    |-----> lazy-pages-start
+
+
+unactive
+|<FALSE>|-----> end
+|<TRUE> |-----> animaion-finish
+```
+
 
 
 ## TODO

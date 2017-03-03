@@ -65,14 +65,25 @@
 				}
 			}
 		},
-		__activeChanged:function(b){
-			if(!this.isUndefined(b,this.activeReady)){
-				this.async(function(){
-					this.activeReady();
-				});
-			}
+		imported:function(){
+			console.log("import：",this.tagName);
+			return this.__promise();
 		},
-		__confirm:function(){
+		__activeChanged:function(b){
+
+		},
+		activeReady:function(){
+			console.log("active：",this.tagName);
+			return this.__promise();
+		},
+		unActiveReady:function(){
+			console.log("unActive：",this.tagName);
+			return this.__promise();
+		},
+		confirm:function(){
+			return this.__promise();
+		},
+		__promise:function(){
 			return new Promise(function(resolve,reject){
 				resolve();
 			});
@@ -131,7 +142,6 @@
 			},
 			__updateAnimationConfig:function(isBack,transition,backTransition,entry,exit){
 				var result = {}
-// 				console.log(isBack);
 				if(isBack){
 					result = Object.assign({
 						entry: Object.assign({},backTransition.entry,{
@@ -159,11 +169,19 @@
 				if([undefined,null,""].indexOf(exit)==-1){
 					result.exit.name = exit;
 				}
-// 				console.log(result);
 				return result;
 			},
-			__confirm:function(){
+			unActiveReady:function(){
+				console.log(this.tagName,"unActive");
 				return this.__exit();
+			},
+			activeReady:function(){
+				console.log(this.tagName,"Active",this.active);
+				if(this.active==true){
+					return this.__promise();
+				}else{
+					return this.__entry();
+				}
 			},
 			__entry:function(){
 				return new Promise(function(resolve){
@@ -177,8 +195,7 @@
 						this.removeAttribute("hidden");
 						this.cancelAnimation();
 						this.playAnimation("entry");
-						
-					},1);
+					});
 				}.bind(this));
 			},
 			__exit:function(){
@@ -197,16 +214,7 @@
 	
 	lazyAnimationPageBehavior=[
 		lazyPageBehavior,
-		lazyAnimationBehaviorImp,{
-			observers:[
-				"__active(active)"
-			],
-			__active:function(active){
-				if(active){
-					this.__entry();
-				}
-			}
-		}
+		lazyAnimationBehaviorImp
 	];
 	lazyAnimationDialogBehavior=[
 		lazyDialogBehavior,
