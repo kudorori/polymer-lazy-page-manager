@@ -430,13 +430,13 @@
 				}).catch(function(err){
 					//confirm error
 				}).then(function(){
+					console.log(ele.tagName,"import params");
+					return that.__importParams(ele, e.params);
+				}).then(function(){
 					return Promise.all([
 						that.__setPageSelected(selected),
 						that.__eleActive(ele,old_ele)
 					]);
-				}).then(function(){
-					console.log(ele.tagName,"import params");
-					return that.__importParams(ele, e.params);
 				}).then(function(){
 					if(model.item.dialog){
 						that.$.backdrop.open();
